@@ -255,17 +255,17 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, GoogleAuthProvider, GithubAuthProvider, FacebookAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'medical-admission-pro-default';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
-            apiKey: "AIzaSyDummyKeyForMedicalAdmissionPro",
+        // Your exact Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBWPpAhnn-OZokPwh5qFRU8McEvh7smlsQ",
             authDomain: "medical-admission-pro.firebaseapp.com",
             projectId: "medical-admission-pro",
-            storageBucket: "medical-admission-pro.appspot.com",
-            messagingSenderId: "1234567890",
-            appId: "1:1234567890:web:abcdef"
+            storageBucket: "medical-admission-pro.firebasestorage.app",
+            messagingSenderId: "371132803062",
+            appId: "1:371132803062:web:220cae49436abf5a9009d7"
         };
 
         let app, db, auth;
@@ -273,15 +273,8 @@
             app = initializeApp(firebaseConfig);
             db = getFirestore(app);
             auth = getAuth(app);
-
-            const initialToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-            if (initialToken) {
-                signInWithCustomToken(auth, initialToken).catch(() => signInAnonymously(auth));
-            } else {
-                signInAnonymously(auth).catch((err) => console.log("Auth notice:", err));
-            }
         } catch (e) {
-            console.log("Firebase initialization fallback mode active.");
+            console.error("Firebase initialization error:", e);
         }
 
         window.switchTab = function(tab) {
@@ -340,9 +333,7 @@
             btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin mr-2"></i> Signing in...`;
 
             try {
-                if (auth) {
-                    await signInWithEmailAndPassword(auth, email, password);
-                }
+                await signInWithEmailAndPassword(auth, email, password);
                 triggerSuccessfulAuthFlow("Welcome back to Medical Admission Pro!");
             } catch (error) {
                 showAlert(error.message || "Invalid login credentials.");
@@ -365,15 +356,11 @@
             btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin mr-2"></i> Creating account...`;
 
             try {
-                let userUid = "local_demo_user_" + Date.now();
-                if (auth) {
-                    const cred = await createUserWithEmailAndPassword(auth, email, password);
-                    userUid = cred.user.uid;
-                }
+                const cred = await createUserWithEmailAndPassword(auth, email, password);
+                const userUid = cred.user.uid;
                 
                 if (db) {
-                    const userId = auth?.currentUser?.uid || userUid;
-                    await setDoc(doc(db, 'artifacts', appId, 'users', userId, 'profile', 'admissionData'), {
+                    await setDoc(doc(db, 'users', userUid, 'profile', 'admissionData'), {
                         studentName: name,
                         collegeName: college,
                         mobileNumber: phone || 'Not provided',
@@ -391,29 +378,31 @@
             }
         };
 
+        // Real Firebase popup sign-in for Google, GitHub, and Facebook
         window.handleSocialAuth = async function(providerName) {
-            if (providerName === 'Google') {
-                try {
-                    if (!auth) {
-                        showAlert("Firebase auth is not initialized.");
-                        return;
-                    }
-                    const provider = new GoogleAuthProvider();
-                    showAlert("Opening Google Sign-In...", 'success');
-                    
-                    const result = await signInWithPopup(auth, provider);
-                    const user = result.user;
-                    
-                    triggerSuccessfulAuthFlow(`Successfully authenticated via Google (${user.email})!`);
-                } catch (error) {
-                    console.error("Google Auth Error:", error);
-                    showAlert(error.message || "Google Sign-In failed.");
+            try {
+                let provider;
+                if (providerName === 'Google') {
+                    provider = new GoogleAuthProvider();
+                } else if (providerName === 'GitHub') {
+                    provider = new GithubAuthProvider();
+                } else if (providerName === 'Facebook') {
+                    provider = new FacebookAuthProvider();
+                } else {
+                    showAlert(`Connecting with ${providerName} securely...`, 'success');
+                    setTimeout(() => {
+                        triggerSuccessfulAuthFlow(`Successfully authenticated via ${providerName}!`);
+                    }, 1200);
+                    return;
                 }
-            } else {
-                showAlert(`Connecting with ${providerName} securely...`, 'success');
-                setTimeout(() => {
-                    triggerSuccessfulAuthFlow(`Successfully authenticated via ${providerName}!`);
-                }, 1200);
+
+                showAlert(`Opening ${providerName} Sign-In...`, 'success');
+                const result = await signInWithPopup(auth, provider);
+                const user = result.user;
+                triggerSuccessfulAuthFlow(`Successfully authenticated via ${providerName} (${user.email || user.displayName})!`);
+            } catch (error) {
+                console.error(`${providerName} Auth Error:`, error);
+                showAlert(error.message || `${providerName} Sign-In failed.`);
             }
         };
 
@@ -447,7 +436,7 @@
                 return;
             }
             try {
-                if (type === 'link' && auth) {
+                if (type === 'link') {
                     await sendPasswordResetEmail(auth, val);
                 }
                 closeForgotPasswordModal();
