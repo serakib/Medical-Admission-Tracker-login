@@ -255,10 +255,9 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Initialize Firebase from environment or fallback config for medical-admission-pro
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'medical-admission-pro-default';
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
             apiKey: "AIzaSyDummyKeyForMedicalAdmissionPro",
@@ -275,7 +274,6 @@
             db = getFirestore(app);
             auth = getAuth(app);
 
-            // Handle custom auth token or anonymous fallback safely
             const initialToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
             if (initialToken) {
                 signInWithCustomToken(auth, initialToken).catch(() => signInAnonymously(auth));
@@ -286,7 +284,6 @@
             console.log("Firebase initialization fallback mode active.");
         }
 
-        // Global UI Tab Handler
         window.switchTab = function(tab) {
             const loginBtn = document.getElementById('loginTabBtn');
             const signupBtn = document.getElementById('signupTabBtn');
@@ -307,7 +304,6 @@
             }
         };
 
-        // Password Visibility Toggle
         window.togglePassword = function(inputId, iconId) {
             const input = document.getElementById(inputId);
             const icon = document.getElementById(iconId);
@@ -320,7 +316,6 @@
             }
         };
 
-        // Alert Helper Box
         window.showAlert = function(message, type = 'error') {
             const box = document.getElementById('alertBox');
             const msg = document.getElementById('alertMessage');
@@ -376,7 +371,6 @@
                     userUid = cred.user.uid;
                 }
                 
-                // Save profile details to Firestore if available
                 if (db) {
                     const userId = auth?.currentUser?.uid || userUid;
                     await setDoc(doc(db, 'artifacts', appId, 'users', userId, 'profile', 'admissionData'), {
@@ -397,12 +391,30 @@
             }
         };
 
-        window.handleSocialAuth = function(provider) {
-            // Simulate smooth OAuth popup & signal back
-            showAlert(`Connecting with ${provider} securely...`, 'success');
-            setTimeout(() => {
-                triggerSuccessfulAuthFlow(`Successfully authenticated via ${provider}!`);
-            }, 1200);
+        window.handleSocialAuth = async function(providerName) {
+            if (providerName === 'Google') {
+                try {
+                    if (!auth) {
+                        showAlert("Firebase auth is not initialized.");
+                        return;
+                    }
+                    const provider = new GoogleAuthProvider();
+                    showAlert("Opening Google Sign-In...", 'success');
+                    
+                    const result = await signInWithPopup(auth, provider);
+                    const user = result.user;
+                    
+                    triggerSuccessfulAuthFlow(`Successfully authenticated via Google (${user.email})!`);
+                } catch (error) {
+                    console.error("Google Auth Error:", error);
+                    showAlert(error.message || "Google Sign-In failed.");
+                }
+            } else {
+                showAlert(`Connecting with ${providerName} securely...`, 'success');
+                setTimeout(() => {
+                    triggerSuccessfulAuthFlow(`Successfully authenticated via ${providerName}!`);
+                }, 1200);
+            }
         };
 
         function triggerSuccessfulAuthFlow(message) {
@@ -411,18 +423,15 @@
             document.getElementById('signupForm').style.opacity = '0.3';
             document.getElementById('redirectStatus').classList.remove('hidden');
 
-            // Signal back or redirect parent window if embedded in iframe / main app
             setTimeout(() => {
                 if (window.parent && window.parent !== window) {
                     window.parent.postMessage({ type: 'MEDICAL_AUTH_SUCCESS', status: 'authenticated' }, '*');
                 } else {
-                    // Fallback redirect or notification banner
-                    window.location.hash = "#authenticated";
+                    window.location.href = "https://serakib.github.io/Medical-Admission-Tracker/";
                 }
             }, 1800);
         }
 
-        // Forgot Password Modal Handlers
         window.openForgotPasswordModal = function() {
             document.getElementById('forgotModal').classList.remove('hidden');
         };
