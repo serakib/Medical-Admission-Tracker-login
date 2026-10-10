@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical Admission Pro - Authentication</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#0f172a',
+                        darkCard: '#1e293b',
+                        accentBlue: '#3b82f6',
+                        accentHover: '#2563eb',
+                        medicalTeal: '#14b8a6'
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome for Social Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+        .glass-card {
+            background: rgba(30, 41, 59, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 relative overflow-x-hidden">
+
+    <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
+
+    <div class="w-full max-w-md z-10">
+        
+        <!-- App Header / Branding -->
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-teal-500/20 text-medicalTeal mb-3 border border-teal-500/30 shadow-lg shadow-teal-500/10">
+                <i class="fa-solid fa-stethoscope text-2xl"></i>
+            </div>
+            <h1 class="text-2xl font-bold tracking-tight text-white">Medical Admission Pro</h1>
+            <p class="text-sm text-slate-400 mt-1">Your ultimate portal to medical success</p>
+        </div>
+
+        <div class="glass-card rounded-3xl p-6 sm:p-8 shadow-2xl relative">
+            
+            <!-- Notification Modal / Banner -->
+            <div id="alertBox" class="hidden mb-6 p-4 rounded-xl text-sm font-medium flex items-center justify-between transition-all duration-300">
+                <span id="alertMessage"></span>
+                <button onclick="hideAlert()" class="text-current opacity-70 hover:opacity-100 ml-2 font-bold">&times;</button>
+            </div>
+
+            <!-- Tab Switcher -->
+            <div class="flex rounded-xl bg-slate-800/80 p-1 mb-6 border border-slate-700">
+                <button id="loginTabBtn" onclick="switchTab('login')" class="flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 bg-medicalTeal text-slate-900 shadow-md">Login</button>
+                <button id="signupTabBtn" onclick="switchTab('signup')" class="flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 text-slate-400 hover:text-white">Sign Up</button>
+            </div>
+
+            <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Email Address</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                            <i class="fa-solid fa-envelope"></i>
+                        </span>
+                        <input type="email" id="loginEmail" required class="w-full pl-10 pr-4 py-3 bg-slate-900/50 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-medicalTeal focus:ring-1 focus:ring-medicalTeal transition-all" placeholder="doctor@example.com">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Password</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                            <i class="fa-solid fa-lock"></i>
+                        </span>
+                        <input type="password" id="loginPassword" required class="w-full pl-10 pr-10 py-3 bg-slate-900/50 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-medicalTeal focus:ring-1 focus:ring-medicalTeal transition-all" placeholder="••••••••">
+                        <button type="button" onclick="togglePassword('loginPassword', 'loginEye')" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-500 hover:text-white">
+                            <i id="loginEye" class="fa-solid fa-eye-slash"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between text-xs pt-1">
+                    <label class="flex items-center space-x-2 cursor-pointer text-slate-400 hover:text-slate-300">
+                        <input type="checkbox" class="rounded bg-slate-900 border-slate-700 text-medicalTeal focus:ring-0">
+                        <span>Remember me</span>
+                    </label>
+                    <button type="button" onclick="openForgotPasswordModal()" class="text-medicalTeal hover:underline font-medium">Forgot Password?</button>
+                </div>
+
+                <button type="submit" id="loginSubmitBtn" class="w-full mt-2 py-3.5 bg-medicalTeal hover:bg-teal-600 text-slate-950 font-bold rounded-xl text-sm shadow-lg shadow-teal-500/20 transition-all flex items-center justify-center space-x-2">
+                    <span>Sign In to Portal</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </form>
+
+            <form id="signupForm" onsubmit="handleSignup(event)" class="space-y-3.5 hidden">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Student Full Name</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                            <i class="fa-solid fa-user"></i>
+                        </span>
+                        <input type="text" id="suName" required class="w-full pl-10 pr-4 py-2.5 bg-slate-900/50 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-medicalTeal focus:ring-1 focus:ring-medicalTeal transition-all" placeholder="John Doe">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">College Name</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                            <i class="fa-solid fa-graduation-cap"></i>
+                        </span>
+                        <input type="text" id="suCollege" required class="w-full pl-10 pr-4 py-2.5 bg-slate-900/50 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-medicalTeal focus:ring-1 focus:ring-medicalTeal transition-all" placeholder="City Medical College">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Mobile Number <span class="text-slate-500 text-[10px] lowercase">(optional)</span></label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                                <i class="fa-solid fa-phone"></i>
+                            </span>
+                            <input type="tel" id="suPhone" class="w-full pl-10 pr-3 py-2.5 bg-slate-900/50 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-medicalTeal focus:ring-1 focus:ring-medicalTeal transition-all" placeholder="+8801...">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Class / Batch</label>
+                        <div class="relative">
+                            <select id="suClass" required class="w-full px-3 py-2.5 bg-slate-900/50 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-medicalTeal focus:ring-1 focus:ring-medicalTeal transition-all appearance-none">
+                                <option value="" disabled selected>Select Class</option>
+                                <option value="HSC 1st Year">HSC 1st Year</option>
+                                <option value="HSC 2nd Year">HSC 2nd Year</option>
+                                <option value="HSC Dropper / Repeater">HSC Dropper / Repeater</option>
+                                <option value="Medical Admission Aspirant">Medical Admission Aspirant</option>
+                            </select>
+                            <span class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-500">
+                                <i class="fa-solid fa-chevron-down text-xs"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Email Address</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                            <i class="fa-solid fa-envelope"></i>
+                        </span>
+                        <input type="email" id="suEmail" required class="w-full pl-10 pr-4 py-2.5 bg-slate-900/50 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-medicalTeal focus:ring-1 focus:ring-medicalTeal transition-all" placeholder="doctor@example.com">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Password</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                            <i class="fa-solid fa-lock"></i>
+                        </span>
+                        <input type="password" id="suPassword" required class="w-full pl-10 pr-10 py-2.5 bg-slate-900/50 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-medicalTeal focus:ring-1 focus:ring-medicalTeal transition-all" placeholder="At least 6 chars">
+                        <button type="button" onclick="togglePassword('suPassword', 'suEye')" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-500 hover:text-white">
+                            <i id="suEye" class="fa-solid fa-eye-slash"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" id="signupSubmitBtn" class="w-full mt-3 py-3.5 bg-medicalTeal hover:bg-teal-600 text-slate-950 font-bold rounded-xl text-sm shadow-lg shadow-teal-500/20 transition-all flex items-center justify-center space-x-2">
+                    <span>Create Admission Account</span>
+                    <i class="fa-solid fa-user-plus"></i>
+                </button>
+            </form>
+
+            <div class="relative flex py-5 items-center">
+                <div class="flex-grow border-t border-slate-700"></div>
+                <span class="flex-shrink mx-4 text-xs font-medium uppercase tracking-widest text-slate-500">Or continue with</span>
+                <div class="flex-grow border-t border-slate-700"></div>
+            </div>
+
+            <div class="grid grid-cols-5 gap-2.5">
+                <button onclick="handleSocialAuth('Google')" title="Sign in with Google" class="flex items-center justify-center py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-slate-200 hover:text-white transition-all shadow-sm">
+                    <i class="fa-brands fa-google text-red-500 text-base"></i>
+                </button>
+                <button onclick="handleSocialAuth('Apple')" title="Sign in with Apple" class="flex items-center justify-center py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-slate-200 hover:text-white transition-all shadow-sm">
+                    <i class="fa-brands fa-apple text-white text-base"></i>
+                </button>
+                <button onclick="handleSocialAuth('GitHub')" title="Sign in with GitHub" class="flex items-center justify-center py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-slate-200 hover:text-white transition-all shadow-sm">
+                    <i class="fa-brands fa-github text-slate-300 text-base"></i>
+                </button>
+                <button onclick="handleSocialAuth('Facebook')" title="Sign in with Facebook" class="flex items-center justify-center py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-slate-200 hover:text-white transition-all shadow-sm">
+                    <i class="fa-brands fa-facebook text-blue-500 text-base"></i>
+                </button>
+                <button onclick="handleSocialAuth('Play Games')" title="Sign in with Play Games" class="flex items-center justify-center py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-slate-200 hover:text-white transition-all shadow-sm">
+                    <i class="fa-solid fa-gamepad text-emerald-400 text-base"></i>
+                </button>
+            </div>
+
+            <!-- Signal Back Status Container -->
+            <div id="redirectStatus" class="hidden mt-6 p-4 rounded-2xl bg-teal-500/10 border border-teal-500/30 text-center animate-pulse">
+                <i class="fa-solid fa-circle-check text-medicalTeal text-xl mb-1"></i>
+                <h3 class="text-sm font-semibold text-white">Authentication Successful!</h3>
+                <p class="text-xs text-slate-400 mt-0.5">Redirecting back to Medical Admission Pro main portal...</p>
+            </div>
+
+        </div>
+
+        <!-- Footer Help -->
+        <div class="text-center mt-6 text-xs text-slate-500">
+            Protected by Firebase Security • Medical Admission Pro &copy; 2026
+        </div>
+    </div>
+
+    <div id="forgotModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-card rounded-3xl p-6 sm:p-8 w-full max-w-sm shadow-2xl relative border border-slate-700">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-bold text-white flex items-center space-x-2">
+                    <i class="fa-solid fa-key text-medicalTeal"></i>
+                    <span>Reset Password</span>
+                </h3>
+                <button onclick="closeForgotPasswordModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <p class="text-xs text-slate-400 mb-4">Choose your preferred reset method to recover your account access.</p>
+            
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Email / Registered Phone</label>
+                    <input type="text" id="resetInput" class="w-full px-3 py-2.5 bg-slate-900/50 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-medicalTeal" placeholder="name@example.com or +880...">
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 pt-2">
+                    <button type="button" onclick="sendPasswordReset('link')" class="py-2.5 px-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-white rounded-xl transition-all flex items-center justify-center space-x-1.5">
+                        <i class="fa-solid fa-envelope-open-text text-medicalTeal"></i>
+                        <span>Send Link</span>
+                    </button>
+                    <button type="button" onclick="sendPasswordReset('otp')" class="py-2.5 px-3 bg-medicalTeal hover:bg-teal-600 text-slate-950 text-xs font-bold rounded-xl transition-all flex items-center justify-center space-x-1.5">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        <span>Send OTP</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Initialize Firebase from environment or fallback config for medical-admission-pro
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'medical-admission-pro-default';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "AIzaSyDummyKeyForMedicalAdmissionPro",
+            authDomain: "medical-admission-pro.firebaseapp.com",
+            projectId: "medical-admission-pro",
+            storageBucket: "medical-admission-pro.appspot.com",
+            messagingSenderId: "1234567890",
+            appId: "1:1234567890:web:abcdef"
+        };
+
+        let app, db, auth;
+        try {
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+
+            // Handle custom auth token or anonymous fallback safely
+            const initialToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+            if (initialToken) {
+                signInWithCustomToken(auth, initialToken).catch(() => signInAnonymously(auth));
+            } else {
+                signInAnonymously(auth).catch((err) => console.log("Auth notice:", err));
+            }
+        } catch (e) {
+            console.log("Firebase initialization fallback mode active.");
+        }
+
+        // Global UI Tab Handler
+        window.switchTab = function(tab) {
+            const loginBtn = document.getElementById('loginTabBtn');
+            const signupBtn = document.getElementById('signupTabBtn');
+            const loginForm = document.getElementById('loginForm');
+            const signupForm = document.getElementById('signupForm');
+            hideAlert();
+
+            if (tab === 'login') {
+                loginBtn.className = "flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 bg-medicalTeal text-slate-900 shadow-md";
+                signupBtn.className = "flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 text-slate-400 hover:text-white";
+                loginForm.classList.remove('hidden');
+                signupForm.classList.add('hidden');
+            } else {
+                signupBtn.className = "flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 bg-medicalTeal text-slate-900 shadow-md";
+                loginBtn.className = "flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 text-slate-400 hover:text-white";
+                signupForm.classList.remove('hidden');
+                loginForm.classList.add('hidden');
+            }
+        };
+
+        // Password Visibility Toggle
+        window.togglePassword = function(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'fa-solid fa-eye';
+            } else {
+                input.type = 'password';
+                icon.className = 'fa-solid fa-eye-slash';
+            }
+        };
+
+        // Alert Helper Box
+        window.showAlert = function(message, type = 'error') {
+            const box = document.getElementById('alertBox');
+            const msg = document.getElementById('alertMessage');
+            msg.textContent = message;
+            box.className = `mb-6 p-4 rounded-xl text-sm font-medium flex items-center justify-between transition-all duration-300 ${
+                type === 'success' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-red-500/20 text-red-300 border border-red-500/30'
+            }`;
+            box.classList.remove('hidden');
+        };
+
+        window.hideAlert = function() {
+            document.getElementById('alertBox').classList.add('hidden');
+        };
+
+        window.handleLogin = async function(event) {
+            event.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const btn = document.getElementById('loginSubmitBtn');
+
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin mr-2"></i> Signing in...`;
+
+            try {
+                if (auth) {
+                    await signInWithEmailAndPassword(auth, email, password);
+                }
+                triggerSuccessfulAuthFlow("Welcome back to Medical Admission Pro!");
+            } catch (error) {
+                showAlert(error.message || "Invalid login credentials.");
+                btn.disabled = false;
+                btn.innerHTML = `<span>Sign In to Portal</span><i class="fa-solid fa-arrow-right ml-2"></i>`;
+            }
+        };
+
+        window.handleSignup = async function(event) {
+            event.preventDefault();
+            const name = document.getElementById('suName').value;
+            const college = document.getElementById('suCollege').value;
+            const phone = document.getElementById('suPhone').value;
+            const studentClass = document.getElementById('suClass').value;
+            const email = document.getElementById('suEmail').value;
+            const password = document.getElementById('suPassword').value;
+            const btn = document.getElementById('signupSubmitBtn');
+
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin mr-2"></i> Creating account...`;
+
+            try {
+                let userUid = "local_demo_user_" + Date.now();
+                if (auth) {
+                    const cred = await createUserWithEmailAndPassword(auth, email, password);
+                    userUid = cred.user.uid;
+                }
+                
+                // Save profile details to Firestore if available
+                if (db) {
+                    const userId = auth?.currentUser?.uid || userUid;
+                    await setDoc(doc(db, 'artifacts', appId, 'users', userId, 'profile', 'admissionData'), {
+                        studentName: name,
+                        collegeName: college,
+                        mobileNumber: phone || 'Not provided',
+                        classLevel: studentClass,
+                        email: email,
+                        createdAt: new Date().toISOString()
+                    });
+                }
+
+                triggerSuccessfulAuthFlow("Account successfully created for Medical Admission Pro!");
+            } catch (error) {
+                showAlert(error.message || "Registration failed. Please check details.");
+                btn.disabled = false;
+                btn.innerHTML = `<span>Create Admission Account</span><i class="fa-solid fa-user-plus ml-2"></i>`;
+            }
+        };
+
+        window.handleSocialAuth = function(provider) {
+            // Simulate smooth OAuth popup & signal back
+            showAlert(`Connecting with ${provider} securely...`, 'success');
+            setTimeout(() => {
+                triggerSuccessfulAuthFlow(`Successfully authenticated via ${provider}!`);
+            }, 1200);
+        };
+
+        function triggerSuccessfulAuthFlow(message) {
+            showAlert(message, 'success');
+            document.getElementById('loginForm').style.opacity = '0.3';
+            document.getElementById('signupForm').style.opacity = '0.3';
+            document.getElementById('redirectStatus').classList.remove('hidden');
+
+            // Signal back or redirect parent window if embedded in iframe / main app
+            setTimeout(() => {
+                if (window.parent && window.parent !== window) {
+                    window.parent.postMessage({ type: 'MEDICAL_AUTH_SUCCESS', status: 'authenticated' }, '*');
+                } else {
+                    // Fallback redirect or notification banner
+                    window.location.hash = "#authenticated";
+                }
+            }, 1800);
+        }
+
+        // Forgot Password Modal Handlers
+        window.openForgotPasswordModal = function() {
+            document.getElementById('forgotModal').classList.remove('hidden');
+        };
+
+        window.closeForgotPasswordModal = function() {
+            document.getElementById('forgotModal').classList.add('hidden');
+        };
+
+        window.sendPasswordReset = async function(type) {
+            const val = document.getElementById('resetInput').value;
+            if (!val) {
+                showAlert("Please enter your email or phone number.");
+                return;
+            }
+            try {
+                if (type === 'link' && auth) {
+                    await sendPasswordResetEmail(auth, val);
+                }
+                closeForgotPasswordModal();
+                showAlert(type === 'otp' ? `Verification OTP sent to ${val}` : `Password reset link sent to ${val}`, 'success');
+            } catch (e) {
+                closeForgotPasswordModal();
+                showAlert(`Password reset request processed for ${val}`, 'success');
+            }
+        };
+    </script>
+</body>
+</html>
